@@ -1,7 +1,7 @@
 import "./style.css";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fetchData } from "./loader";
+import { fetchData } from "./api";
 
 export const map = L.map("map", {
   minZoom: 14,

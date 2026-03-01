@@ -2,16 +2,6 @@ import { map, tileLayer } from "./main";
 import { buildPopupContent } from "./dropDown.js";
 import { createLightIcon } from "./render.js";
 
-export async function fetchData(reload = false) {
-  const res = await fetch("http://localhost:1323/features");
-
-  if (!res.ok) throw new Error("Failed to load lamps.etmsl: " + res.status);
-
-  const data = await res.arrayBuffer();
-
-  loadData(data, reload);
-}
-
 export function loadData(data, reload = false) {
   const out = parseETMSL(data);
 
