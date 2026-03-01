@@ -1,7 +1,7 @@
 import { loadData } from "./loader";
 
 const baseURL = import.meta.env.PROD
-  ? "http://api.sl.derfarmer.net/"
+  ? "https://sl.derfarmer.net/"
   : "http://localhost:1323/";
 
 export async function fetchData(reload = false) {
