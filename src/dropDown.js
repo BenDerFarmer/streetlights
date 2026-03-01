@@ -1,7 +1,8 @@
-import { map, createLightIcon } from "./main.js";
+import { map, auth } from "./main.js";
+import { createLightIcon } from "./render.js";
 import { saveFeature } from "./api.js";
 
-export function buildPopupContent(feature, marker) {
+export function buildPopupContent(feature, marker, index) {
   const container = document.createElement("div");
   container.style.minWidth = "260px";
   container.style.maxWidth = "420px";
@@ -22,20 +23,16 @@ export function buildPopupContent(feature, marker) {
         <button class="tpl-btn" data-tpl="Mast beschädigt" type="button" style="flex:1">Mast beschädigt</button>
       </div>
     </div>
-    ${window.isLoggedIn ? adminPopup(container, feature, marker) : ""}
+    ${auth != null ? adminPopup(feature) : ""}
   `;
 
-  if (window.isLoggedIn) adminLogic(container, feature, marker);
+  if (auth != null) adminLogic(container, feature, marker, index);
 
   return container;
 }
 
-function adminPopup(container, feature, marker) {
-  const props = feature.properties || {};
-
-  const [lng0, lat0] = (feature.geometry && feature.geometry.coordinates) || [
-    0, 0,
-  ];
+function adminPopup(feature) {
+  const [lat, lng] = feature.coordinates || [0, 0];
 
   return `
    <div style="margin-bottom:8px">
@@ -50,11 +47,11 @@ function adminPopup(container, feature, marker) {
     <div style="margin-bottom:8px; display:flex; gap:6px; align-items:flex-end">
       <div style="flex:1">
         <label style="font-size:13px; display:block; margin-bottom:4px">Breitengrad</label>
-        <input id="lat-input" type="number" step="0.000001" value="${lat0 ?? ""}" style="width:100%; padding:6px; box-sizing:border-box"/>
+        <input id="lat-input" type="number" step="0.000001" value="${lat ?? ""}" style="width:100%; padding:6px; box-sizing:border-box"/>
       </div>
       <div style="flex:1">
         <label style="font-size:13px; display:block; margin-bottom:4px">Längengrad</label>
-        <input id="lng-input" type="number" step="0.000001" value="${lng0 ?? ""}" style="width:100%; padding:6px; box-sizing:border-box"/>
+        <input id="lng-input" type="number" step="0.000001" value="${lng ?? ""}" style="width:100%; padding:6px; box-sizing:border-box"/>
       </div>
     </div>
     <div style="display:flex; gap:6px; margin-bottom:8px">
@@ -64,7 +61,7 @@ function adminPopup(container, feature, marker) {
 
     <div style="margin-bottom:10px">
       <label style="font-size:13px; display:block; margin-bottom:4px">Verteiler</label>
-      <input id="dbbox-input" type="text" value="${(props.dbbox || "").replace(/"/g, "&quot;")}" style="width:100%; padding:6px; box-sizing:border-box"/>
+      <input id="dbbox-input" type="number" value="${feature.connection || 0}" style="width:100%; padding:6px; box-sizing:border-box"/>
     </div>
 
     <div style="display:flex; gap:8px; justify-content:flex-end">
@@ -74,39 +71,28 @@ function adminPopup(container, feature, marker) {
   `;
 }
 
-function adminLogic(container, feature, marker) {
-  const props = feature.properties || {};
+function adminLogic(container, feature, marker, index) {
+  const lampTypeWrapper = container.querySelector("#lamp-type-wrapper");
+  const select = document.createElement("select");
+  select.id = "lamp-type-select";
+  select.style.width = "99%";
+  select.style.padding = "5px";
 
-  const [lng0, lat0] = (feature.geometry && feature.geometry.coordinates) || [
-    0, 0,
+  const options = [
+    { v: 0, t: "(unbekannt)" },
+    { v: 1, t: "LED" },
+    { v: 2, t: "Natriumdampf-Hochdruck" },
+    { v: 16, t: "Andere" },
   ];
 
-  const lampTypeWrapper = container.querySelector("#lamp-type-wrapper");
-  if (window.isLoggedIn) {
-    const select = document.createElement("select");
-    select.id = "lamp-type-select";
-    select.style.width = "99%";
-    select.style.padding = "5px";
-    const options = [
-      { v: "", t: "(unbekannt)" },
-      { v: "led", t: "LED" },
-      { v: "high_pressure_sodium", t: "Natriumdampf-Hochdruck" },
-      { v: "other", t: "Andere" },
-    ];
-    options.forEach((o) => {
-      const opt = document.createElement("option");
-      opt.value = o.v;
-      opt.text = o.t;
-      if ((props.lamp_type || "").toLowerCase() === o.v) opt.selected = true;
-      select.appendChild(opt);
-    });
-    lampTypeWrapper.appendChild(select);
-  } else {
-    const span = document.createElement("span");
-    span.textContent = props.lamp_type || "(not specified)";
-    span.style.color = "#221";
-    lampTypeWrapper.appendChild(span);
-  }
+  options.forEach((o) => {
+    const opt = document.createElement("option");
+    opt.value = o.v;
+    opt.text = o.t;
+    if (feature.lampType === o.v) opt.selected = true;
+    select.appendChild(opt);
+  });
+  lampTypeWrapper.appendChild(select);
 
   const tplButtons = container.querySelectorAll(".tpl-btn");
   tplButtons.forEach((btn) => {
@@ -167,40 +153,26 @@ function adminLogic(container, feature, marker) {
   saveBtn.addEventListener("click", () => {
     // collect data
     const reportText = container.querySelector("#report-text").value.trim();
-    const dbboxVal = container.querySelector("#dbbox-input").value.trim();
+    const dbbox = container.querySelector("#dbbox-input").value;
     const lat = parseFloat(container.querySelector("#lat-input").value);
     const lng = parseFloat(container.querySelector("#lng-input").value);
 
-    if (!feature.properties) feature.properties = {};
-    feature.properties.dbbox = dbboxVal;
+    feature.connection = parseInt(dbbox);
 
     const selectEl = container.querySelector("#lamp-type-select");
     if (selectEl) {
-      feature.properties.lamp_type = selectEl.value || null;
-    }
-
-    if (reportText) {
-      if (!feature.properties.reports) feature.properties.reports = [];
-      feature.properties.reports.push({
-        text: reportText,
-        when: new Date().toISOString(),
-      });
+      feature.lampType = parseInt(selectEl.value || 0);
     }
 
     if (isFinite(lat) && isFinite(lng)) {
-      feature.geometry = feature.geometry || {
-        type: "Point",
-        coordinates: [lng, lat],
-      };
-      feature.geometry.coordinates = [lng, lat];
+      feature.coordinates = [lat, lng];
       marker.setLatLng([lat, lng]);
     }
 
-    const newType = feature.properties.lamp_type;
-    marker.setIcon(createLightIcon(newType));
+    marker.setIcon(createLightIcon(feature.lampType));
 
     marker.closePopup();
 
-    saveFeature(feature);
+    saveFeature(index, feature);
   });
 }
