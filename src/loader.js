@@ -1,43 +1,58 @@
-import { map, tileLayer } from "./main";
-import { buildPopupContent } from "./dropDown.js";
-import { createLightIcon } from "./render.js";
+import { map, vectorSource } from "./main";
+import View from "ol/View.js";
+import Feature from "ol/Feature.js";
+import Point from "ol/geom/Point.js";
+import { fromLonLat } from "ol/proj.js";
+import { createLightStyle } from "./render";
 
 export function loadData(data, reload = false) {
   const out = parseETMSL(data);
-
   if (reload) {
-    map.eachLayer((layer) => {
-      if (layer != tileLayer) layer.removeFrom(map);
-    });
+    vectorSource.clear();
   }
 
-  const markers = [];
+  const features = [];
   for (let i = 0; i < out.features.length; i++) {
-    const feature = out.features[i];
+    const f = out.features[i];
 
-    const marker = L.marker(feature.coordinates, {
-      icon: createLightIcon(feature.lampType),
+    const pt = new Point(fromLonLat(f.coordinates));
+
+    const olFeature = new Feature({
+      geometry: pt,
     });
 
-    marker.on("popupopen", () => {
-      const popupContent = buildPopupContent(feature, marker, i);
-      marker.getPopup().setContent(popupContent);
-    });
+    olFeature.set("meta", f);
+    olFeature.set("index", i);
 
-    marker.bindPopup("Loading...");
+    olFeature.setStyle(createLightStyle(f.lampType));
 
-    markers.push(marker);
+    features.push(olFeature);
   }
 
-  const layer = L.featureGroup(markers).addTo(map);
+  vectorSource.addFeatures(features);
 
   if (!reload) {
-    const bounds = layer.getBounds().pad(0.1);
-    map.setMaxBounds(bounds);
-    map.fitBounds(bounds);
+    const extent = vectorSource.getExtent();
+    if (extent && !isNaN(extent[0])) {
+      map.getView().fit(extent, {
+        padding: [50, 50, 50, 50],
+        size: map.getSize(),
+      });
+
+      const view = map.getView();
+      const center = view.getCenter();
+      const zoom = view.getZoom();
+
+      map.setView(
+        new View({
+          center,
+          zoom,
+          extent,
+        }),
+      );
+    }
   }
 }
-
 function parseETMSL(buffer) {
   const dv = new DataView(buffer);
   let off = 0;
@@ -71,17 +86,16 @@ function parseETMSL(buffer) {
     const lampType = packed2 & 0x0f;
     const connection = (packed2 >> 4) & 0x0f;
 
-    const lat = dv.getFloat32(off, false);
-    off += 4;
     const lng = dv.getFloat32(off, false);
     off += 4;
-
+    const lat = dv.getFloat32(off, false);
+    off += 4;
     features.push({
       featureType, // 0=lamp,1=dbox,2=transformer
       status, // 0=not reported,1=intentionally off,2=reported
       lampType, // 0=unknown,1=led,2=high_pressure_sodium,16=other (may exceed 4-bit)
       connection, // id packed (0..255 in Go), but here assumed 4-bit; see note below
-      coordinates: [lat, lng],
+      coordinates: [lng, lat],
     });
   }
 
