@@ -1,3 +1,6 @@
+import Style from "ol/style/Style.js";
+import Icon from "ol/style/Icon.js";
+
 function getLampColor(type) {
   switch (type) {
     case 1:
@@ -9,18 +12,22 @@ function getLampColor(type) {
   }
 }
 
-export function createLightIcon(lampType, size = 32) {
-  const color = getLampColor(lampType);
-  const html = `
-  <svg xmlns="http://www.w3.org/2000/svg" width=${size} height=${size} class="glow" viewBox="0 0 ${size} ${size}" fill="none" 
-     stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="4" fill="${color}"/>
-  </svg>
-  `;
-  return L.divIcon({
-    className: "",
-    html,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+export function createLightStyle(lampType) {
+  const svg = encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="10" fill="${getLampColor(lampType)}" stroke="#333" stroke-width="1"/>
+    </svg>
+  `);
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${svg}`;
+
+  return new Style({
+    image: new Icon({
+      src: dataUrl,
+      anchor: [0.5, 1], // anchor at bottom-center (pixels or fraction)
+      anchorXUnits: "fraction",
+      anchorYUnits: "fraction",
+      scale: 1,
+      crossOrigin: "anonymous",
+    }),
   });
 }

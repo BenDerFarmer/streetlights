@@ -1,15 +1,10 @@
-import { map, auth } from "./main.js";
-import { createLightIcon } from "./render.js";
+import { map, auth, view } from "./main.js";
 import { saveFeature } from "./api.js";
+import { fromLonLat } from "ol/proj.js";
 
-export function buildPopupContent(feature, marker, index) {
-  const container = document.createElement("div");
-  container.style.minWidth = "260px";
-  container.style.maxWidth = "420px";
-  container.style.fontFamily =
-    'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial';
-
-  container.innerHTML = `
+export function buildPopupContent(feature) {
+  return `
+  <div class="container">
     <div style="margin-bottom:8px">
       <strong>Straßenbeleuchtung</strong><br/>
     </div>
@@ -24,15 +19,12 @@ export function buildPopupContent(feature, marker, index) {
       </div>
     </div>
     ${auth != null ? adminPopup(feature) : ""}
+  </div>
   `;
-
-  if (auth != null) adminLogic(container, feature, marker, index);
-
-  return container;
 }
 
 function adminPopup(feature) {
-  const [lat, lng] = feature.coordinates || [0, 0];
+  const [lng, lat] = feature.coordinates || [0, 0];
 
   return `
    <div style="margin-bottom:8px">
@@ -71,7 +63,11 @@ function adminPopup(feature) {
   `;
 }
 
-function adminLogic(container, feature, marker, index) {
+export function addPopupListener(container, feature, overlay, index) {
+  if (auth == null) return;
+
+  const meta = feature.get("meta");
+
   const lampTypeWrapper = container.querySelector("#lamp-type-wrapper");
   const select = document.createElement("select");
   select.id = "lamp-type-select";
@@ -89,7 +85,7 @@ function adminLogic(container, feature, marker, index) {
     const opt = document.createElement("option");
     opt.value = o.v;
     opt.text = o.t;
-    if (feature.lampType === o.v) opt.selected = true;
+    if (feature.get("meta").lampType === o.v) opt.selected = true;
     select.appendChild(opt);
   });
   lampTypeWrapper.appendChild(select);
@@ -139,14 +135,18 @@ function adminLogic(container, feature, marker, index) {
       alert("Bitte gib einen richtigen Längengrad und Breitengrad an");
       return;
     }
-    const newLatLng = L.latLng(lat, lng);
-    marker.setLatLng(newLatLng);
-    map.panTo(newLatLng);
+    const newPos = [lng, lat];
+    view.animate({
+      center: fromLonLat(newPos),
+      duration: 2000,
+    });
+
+    //@TODO Set the new pos on the map
   });
 
   const closeBtn = container.querySelector("#close-btn");
   closeBtn.addEventListener("click", () => {
-    marker.closePopup();
+    overlay.setPosition(undefined);
   });
 
   const saveBtn = container.querySelector("#save-btn");
@@ -157,22 +157,26 @@ function adminLogic(container, feature, marker, index) {
     const lat = parseFloat(container.querySelector("#lat-input").value);
     const lng = parseFloat(container.querySelector("#lng-input").value);
 
-    feature.connection = parseInt(dbbox);
+    if (!isFinite(lat) || !isFinite(lng)) {
+      alert("Bitte gib einen richtigen Längengrad und Breitengrad an");
+      return;
+    }
+
+    meta.coordinates = [lng, lat];
+
+    meta.connection = parseInt(dbbox);
 
     const selectEl = container.querySelector("#lamp-type-select");
     if (selectEl) {
-      feature.lampType = parseInt(selectEl.value || 0);
+      meta.lampType = parseInt(selectEl.value || 0);
     }
 
-    if (isFinite(lat) && isFinite(lng)) {
-      feature.coordinates = [lat, lng];
-      marker.setLatLng([lat, lng]);
-    }
+    saveFeature(index, meta);
 
-    marker.setIcon(createLightIcon(feature.lampType));
-
-    marker.closePopup();
-
-    saveFeature(index, feature);
+    overlay.setPosition(undefined);
+    view.animate({
+      center: fromLonLat(meta.coordinates),
+      duration: 2000,
+    });
   });
 }
