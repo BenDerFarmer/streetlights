@@ -1,5 +1,4 @@
 import { map, vectorSource } from "./main";
-import View from "ol/View.js";
 import Feature from "ol/Feature.js";
 import Point from "ol/geom/Point.js";
 import { fromLonLat } from "ol/proj.js";
@@ -31,27 +30,14 @@ export function loadData(data, reload = false) {
 
   vectorSource.addFeatures(features);
 
-  if (!reload) {
-    const extent = vectorSource.getExtent();
-    if (extent && !isNaN(extent[0])) {
-      map.getView().fit(extent, {
-        padding: [50, 50, 50, 50],
-        size: map.getSize(),
-      });
+  if (reload) return;
+  const e = vectorSource.getExtent();
 
-      const view = map.getView();
-      const center = view.getCenter();
-      const zoom = view.getZoom();
+  if (!e && isNaN(e[0])) return;
 
-      map.setView(
-        new View({
-          center,
-          zoom,
-          extent,
-        }),
-      );
-    }
-  }
+  map.getView().fit(e, {
+    size: map.getSize(),
+  });
 }
 function parseETMSL(buffer) {
   const dv = new DataView(buffer);

@@ -4,6 +4,7 @@ html,
 body {
   margin: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 :root {
@@ -15,8 +16,34 @@ body {
   width: 100%;
 }
 
-.container {
-  background-color: light-dark(white, black);
-  padding: 10px;
-  border-radius: 10px;
+.menu {
+  left: 0.5em;
+  bottom: 0.5em;
+}
+
+#sidebar {
+  position: absolute;
+  padding: 20px;
+  top: 0;
+  right: -330px;
+  bottom: 0;
+  width: 280px;
+  background: light-dark(white, black);
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+  transition: right 0.3s;
+  overflow: auto; /* scroll if content tall */
+  z-index: 1000;
+}
+#sidebar.open {
+  right: 0;
+} /* toggled via JS */
+
+#sidebar h2 {
+  margin: 1rem;
+  font-size: 1.2rem;
+}
+#sidebar .close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
 }
