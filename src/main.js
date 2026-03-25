@@ -9,6 +9,7 @@ import { MenuControl } from "./controls.js";
 import { fetchData } from "./api.js";
 import { defaults as defaultControls } from "ol/control/defaults.js";
 import { initGeoLocation } from "./geolocation.js";
+import { setupSideBar } from "./sidebar.js";
 
 // temporary will be replaced with real auth
 let params = new URLSearchParams(document.location.search);
@@ -40,5 +41,7 @@ new VectorLayer({
 });
 
 export const geolocation = initGeoLocation(map);
+
+setupSideBar(map);
 
 fetchData();

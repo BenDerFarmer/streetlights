@@ -9,21 +9,7 @@
     <div id="map"></div>
     <aside id="sidebar" class="open">
       <button class="close-btn" onclick="closeSidebar()">×</button>
-      <h2 id="sidebar-title"></h2>
-      <form id="feature-form">
-        <div>
-          <label>Lamp Type:</label>
-          <select name="lampType">
-            <option value="0">Unknown</option>
-            <option value="1">LED</option>
-            <option value="2">Sodium</option>
-            <option value="16">Other</option>
-          </select>
-        </div>
-        <!-- More fields... -->
-        <button type="submit">Save</button>
-        <button type="button" onclick="closeSidebar()">Cancel</button>
-      </form>
+      <div id="sidebar-inner"></div>
     </aside>
     <script>
       function closeSidebar() {
