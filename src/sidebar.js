@@ -24,145 +24,95 @@ export function handleHTML(index, feature) {
 
 function htmlUser() {
   return `
-    <div style="margin-bottom:8px">
-      <strong>Straßenbeleuchtung</strong><br/>
+    <h2>Straßenlampe</h2>
+    <div class="form-group">
+      <label for="report-text">Melde ein Problem</label>
+      <textarea id="report-text" rows="3" placeholder="Beschreibe das Problem..." class="input"></textarea>
     </div>
-
-    <div style="margin-bottom:8px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Melde ein Problem</label>
-      <textarea id="report-text" rows="3" placeholder="Beschreib das Problem..." style="width:100%; box-sizing:border-box; padding:6px"></textarea>
-      <div style="margin-top:6px; display:flex; gap:6px">
-        <button class="tpl-btn" data-tpl="Dauerhaft aus" type="button" style="flex:1">Dauerhaft aus</button>
-        <button class="tpl-btn" data-tpl="Flackert" type="button" style="flex:1">Flackert</button>
-        <button class="tpl-btn" data-tpl="Mast beschädigt" type="button" style="flex:1">Mast beschädigt</button>
-      </div>
-    </div>
-  `;
+    <div class="flex-row">
+      <button class="btn btn-secondary" data-tpl="Outage" type="button">Outage</button>
+      <button class="btn btn-secondary" data-tpl="Flickering" type="button">Flickering</button>
+      <button class="btn btn-secondary" data-tpl="Pole Damage" type="button">Pole Damage</button>
+    </div>`;
 }
 
 function htmlAdmin(feature) {
   const [lng, lat] = feature.coordinates || [0, 0];
-
   return `
-   <div style="margin-bottom:8px">
-      <strong>Admin</strong><br/>
-    </div>
-    <hr>
-    <div style="margin-bottom:8px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Leuchtmittel</label>
-      <select id="lamp-type-select">
-        ${lampTypes
-          .map((o) => {
-            return `<option value="${o.v}" ${feature.lampType == o.v ? "selected" : ""}>${o.t}</option>`;
-          })
-          .join("\n")}
-      </select>
-    </div>
-
- <div style="margin-bottom:8px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Status</label>
-      <select id="status-type-select">
-        ${statusTypes
-          .map((o) => {
-            return `<option value="${o.v}" ${feature.status == o.v ? "selected" : ""}>${o.t}</option>`;
-          })
-          .join("\n")}
-      </select>
-    </div>
-
-
-    <div style="margin-bottom:8px; display:flex; gap:6px; align-items:flex-end">
-      <div style="flex:1">
-        <label style="font-size:13px; display:block; margin-bottom:4px">Breitengrad</label>
-        <input id="lat-input" type="number" step="0.000001" value="${lat ?? ""}" style="width:100%; padding:6px; box-sizing:border-box"/>
-      </div>
-      <div style="flex:1">
-        <label style="font-size:13px; display:block; margin-bottom:4px">Längengrad</label>
-        <input id="lng-input" type="number" step="0.000001" value="${lng ?? ""}" style="width:100%; padding:6px; box-sizing:border-box"/>
-      </div>
-    </div>
-    <div style="display:flex; gap:6px; margin-bottom:8px">
-      <button id="use-gps-btn" type="button" style="flex:1">Nutze Standort</button>
-      <button id="use-map-btn" type="button" style="flex:1">Nutze Karte</button>
-    </div>
-
-    <div style="font-size:13px;>
-      <label style="display:block; margin-bottom:4px">Art</label>
-      <div style="display: flex;margin-bottom:8px">
-        <div style="display:flex; align-items: center;">
-          <input id="feature-type-lamp" type="radio" ${feature.featureType == 0 ? "checked" : ""} value="lamp" name="feature-type" style="width:100%; box-sizing:border-box"/>
-          <label for="feature-type-lamp">Leuchte</label>
-        </div>
-        <div style="display:flex; align-items: center;">
-          <input id="feature-type-dbox" type="radio" ${feature.featureType == 1 ? "checked" : ""} name="feature-type" value="dbox" style="width:100%; box-sizing:border-box"/>
-          <label for="feature-type-dbox">Verteiler</label>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-bottom:10px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Verteiler</label>
-      <input id="connection-input" type="number" value="${feature.connection || 0}" style="width:100%; padding:6px; box-sizing:border-box"/>
-    </div>
-
+    <h2>Admin</h2>
     <hr/>
-
-    <div style="display:flex; gap:8px; justify-content:flex-start">
-      <button id="save-btn" type="button" style="padding:8px 12px">Speichern</button>
-      <button id="preview-btn" type="button" style="padding:8px 12px">Vorschau</button>
-      <button id="remove-btn" type="button" style="padding:8px 12px;color:red">Entfernen</button>
+    <div class="form-group">
+      <label for="lamp-type-select">Leuchtmittel</label>
+      <select id="lamp-type-select" class="input">
+        ${lampTypes.map((o) => `<option value="${o.v}"${feature.lampType == o.v ? " selected" : ""}>${o.t}</option>`).join("")}
+      </select>
     </div>
-  `;
+    <div class="form-group">
+      <label for="status-type-select">Status</label>
+      <select id="status-type-select" class="input">
+        ${statusTypes.map((o) => `<option value="${o.v}"${feature.status == o.v ? " selected" : ""}>${o.t}</option>`).join("")}
+      </select>
+    </div>
+    <div class="flex-row">
+      <div class="form-group" style="flex:1">
+        <label for="lat-input">Breitengrad</label>
+        <input id="lat-input" type="number" step="0.000001" value="${lat}" class="input"/>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label for="lng-input">Längengrad</label>
+        <input id="lng-input" type="number" step="0.000001" value="${lng}" class="input"/>
+      </div>
+    </div>
+    <div class="flex-row form-group">
+      <button id="use-gps-btn" type="button" class="btn btn-sm btn-secondary">Nutze GPS</button>
+      <button id="use-map-btn" type="button" class="btn btn-sm btn-secondary">Nutze Map</button>
+    </div>
+    <div class="form-group">
+      <label>Typ</label>
+      <div class="flex-row">
+        <label><input id="feature-type-lamp" type="radio" name="feature-type" value="lamp"${feature.featureType == 0 ? " checked" : ""}/>Leuchte</label>
+        <label><input id="feature-type-dbox" type="radio" name="feature-type" value="dbox"${feature.featureType == 1 ? " checked" : ""}/>Verteiler</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="connection-input">Verbindung</label>
+      <input id="connection-input" type="number" value="${feature.connection || 0}" class="input"/>
+    </div>
+    <hr/>
+    <div class="flex-row">
+      <button id="save-btn" type="button" class="btn btn-primary">Speichern</button>
+      <button id="preview-btn" type="button" class="btn btn-secondary">Vorschau</button>
+      <button id="remove-btn" type="button" class="btn btn-danger">Löschen</button>
+    </div>`;
 }
 
 export function htmlMenu() {
   const displaySetting = getSetting(SETTING_DISPLAY_TYPE);
   const displayFilter = getSetting(SETTING_DISPLAY_FILTER);
   const iconSize = getSetting(SETTINGS_ICON_SIZE);
-
   return `
-    <div style="margin-bottom:8px">
-      <strong>Menu</strong><br/>
+    <h2>Einstellungen</h2>
+    <hr/>
+    <div class="form-group">
+      <label for="displayTyp">Farbanzeige Typ</label>
+      <select id="displayTyp" class="input">
+        ${displayTypes.map((o) => `<option value="${o.v}"${displaySetting == o.v ? " selected" : ""}>${o.t}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="displayFilter">Filter</label>
+      <select id="displayFilter" class="input">
+        ${displayFilters.map((o) => `<option value="${o.v}"${displayFilter == o.v ? " selected" : ""}>${o.t}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="iconSize">Symbol Größen</label>
+      <select id="iconSize" class="input">
+        ${iconSizeTypes.map((o) => `<option value="${o.v}"${iconSize == o.v ? " selected" : ""}>${o.t}</option>`).join("")}
+      </select>
     </div>
     <hr/>
-
-    <div style="margin-bottom:8px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Farb Anzeige Typ</label>
-      <select id="displayTyp">
-        ${displayTypes
-          .map((o) => {
-            return `<option value="${o.v}" ${displaySetting == o.v ? "selected" : ""}>${o.t}</option>`;
-          })
-          .join("\n")}
-      </select>
-    </div>
-
-    <div style="margin-bottom:8px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Anzeigefilter</label>
-      <select id="displayFilter">
-        ${displayFilters
-          .map((o) => {
-            return `<option value="${o.v}" ${displayFilter == o.v ? "selected" : ""}>${o.t}</option>`;
-          })
-          .join("\n")}
-      </select>
-    </div>
-
-    <div style="margin-bottom:8px">
-      <label style="font-size:13px; display:block; margin-bottom:4px">Anzeigefilter</label>
-      <select id="iconSize">
-        ${iconSizeTypes
-          .map((o) => {
-            return `<option value="${o.v}" ${iconSize == o.v ? "selected" : ""}>${o.t}</option>`;
-          })
-          .join("\n")}
-      </select>
-    </div>
-
-    <hr/>
-
-    <button id="add-btn" type="button" style="padding:8px 12px">Hinzufügen</button>
-  `;
+    <button id="add-btn" type="button" class="btn btn-primary btn-block">Neues Element hinzufügen</button>`;
 }
 
 const iconSizeTypes = [
