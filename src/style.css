@@ -1,22 +1,163 @@
 @import "../node_modules/ol/ol.css";
 
+:root {
+  color-scheme: light dark;
+  /* Base colors */
+  --color-base-100: #ffffff;
+  --color-base-content: #000000;
+  --color-base-200: #f5f5f5;
+  --color-base-300: #eeeeee;
+  /* Brand colors */
+  --color-primary: #570df8;
+  --color-primary-content: #ffffff;
+  --color-secondary: #f000b8;
+  --color-secondary-content: #ffffff;
+  --color-error: #ff6f6f;
+  --color-error-content: #ffffff;
+  /* Radius scale (DaisyUI-like) */
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.125rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-base-100: #1e1e2e;
+    --color-base-content: #ececec;
+    --color-base-200: #2c2c38;
+    --color-base-300: #2c2c38;
+    --color-primary: #793ef9;
+    --color-primary-content: #ffffff;
+    --color-secondary: #d126a4;
+    --color-secondary-content: #ffffff;
+    --color-error: #ff6f6f;
+    --color-error-content: #ffffff;
+  }
+}
+
+/* Reset and layout */
 html,
 body {
   margin: 0;
+  padding: 0;
   height: 100%;
+  font-family: sans-serif;
+  overflow: hidden;
 }
-
-:root {
-  color-scheme: light dark;
-}
-
 #map {
   height: 100vh;
   width: 100%;
 }
+#sidebar {
+  position: absolute;
+  top: 0;
+  right: -340px;
+  bottom: 0;
+  width: 300px;
+  padding: 1rem;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+  transition: right 0.3s;
+  z-index: 1000;
+  overflow-y: auto;
+}
+#sidebar.open {
+  right: 0;
+}
+#sidebar h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+#sidebar button#close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-base-content);
+  cursor: pointer;
+}
 
-.container {
-  background-color: light-dark(white, black);
-  padding: 10px;
-  border-radius: 10px;
+/* Form elements */
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-base-content);
+}
+.input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-field);
+  font-size: 1rem;
+  color: var(--color-base-content);
+  background: var(--color-base-100);
+}
+textarea {
+  resize: vertical;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.flex-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+/* Button styles (daisyUI-like) */
+.btn {
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: var(--radius-field);
+  cursor: pointer;
+  font-size: 1rem;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+.btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-secondary-content);
+}
+.btn-danger {
+  background: var(--color-error);
+  color: var(--color-error-content);
+}
+.btn-block {
+  display: block;
+  width: 100%;
+}
+.btn-sm {
+  font-size: 0.875rem;
+}
+.btn-md {
+  font-size: 1rem;
+}
+.btn-lg {
+  font-size: 1.125rem;
+}
+
+.ol-attribution {
+  right: auto !important;
+  left: 0.5em !important;
+}
+.menu {
+  right: 0.5em;
+  bottom: 0.5em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  background: none;
+}
+.menu button {
+  width: 2em;
+  border-radius: 0.3em;
+  height: 2em;
 }
