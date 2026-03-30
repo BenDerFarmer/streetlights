@@ -7,15 +7,10 @@
   </head>
   <body>
     <div id="map"></div>
-    <aside id="sidebar" class="open">
-      <button class="close-btn" onclick="closeSidebar()">×</button>
+    <aside id="sidebar">
+      <button id="close-btn">×</button>
       <div id="sidebar-inner"></div>
     </aside>
-    <script>
-      function closeSidebar() {
-        document.getElementById("sidebar").className = "";
-      }
-    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

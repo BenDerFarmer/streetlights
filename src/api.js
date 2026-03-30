@@ -1,15 +1,27 @@
 import { loadData } from "./loader";
+import { auth } from "./main";
 import { logError } from "./utils";
 
 const baseURL = import.meta.env.PROD
   ? "https://sl.derfarmer.net/"
   : "http://localhost:1323/";
 
+let lastUpdate = Date.now().valueOf();
+
 export async function fetchData(reload = false) {
-  await baseRequest("features", {}, "Failed to load Features", reload);
+  const opt = {
+    headers: {
+      "content-type": "application/json",
+    },
+  };
+
+  if (auth) opt.headers.Authorization = `Bearer ${auth}`;
+
+  await baseRequest("features", opt, "Failed to load Features", reload);
 }
 
 export async function saveFeature(index, feature) {
+  feature["lastUpdate"] = lastUpdate;
   await baseRequest(
     "edit/" + index,
     {
@@ -43,6 +55,9 @@ export async function deleteFeature(index) {
   await baseRequest(
     "delete/" + index,
     {
+      body: JSON.stringify({
+        lastUpdate,
+      }),
       headers: {
         "content-type": "application/json",
       },
@@ -61,4 +76,5 @@ async function baseRequest(fetchURL, fetchOpt, errorMsg, reload) {
   const data = await res.arrayBuffer();
 
   loadData(data, reload);
+  lastUpdate = Date.now().valueOf();
 }

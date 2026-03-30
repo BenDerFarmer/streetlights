@@ -2,17 +2,30 @@ import { map, vectorSource } from "./main";
 import Feature from "ol/Feature.js";
 import Point from "ol/geom/Point.js";
 import { fromLonLat } from "ol/proj.js";
-import { createLightStyle } from "./render";
+import { createDBoxStyle, createLightStyle } from "./render";
+import { getSetting, SETTING_DISPLAY_FILTER } from "./settings";
+
+let lastOut = null;
 
 export function loadData(data, reload = false) {
-  const out = parseETMSL(data);
+  let out;
+  if (data == null && lastOut != null) {
+    out = lastOut;
+  } else {
+    out = parseETMSL(data);
+    lastOut = out;
+  }
   if (reload) {
     vectorSource.clear();
   }
-
   const features = [];
   for (let i = 0; i < out.features.length; i++) {
     const f = out.features[i];
+
+    if (f.featureType == 0 && getSetting(SETTING_DISPLAY_FILTER) == "dboxs")
+      continue;
+    if (f.featureType == 1 && getSetting(SETTING_DISPLAY_FILTER) == "lamps")
+      continue;
 
     const pt = new Point(fromLonLat(f.coordinates));
 
@@ -23,7 +36,11 @@ export function loadData(data, reload = false) {
     olFeature.set("meta", f);
     olFeature.set("index", i);
 
-    olFeature.setStyle(createLightStyle(f.lampType));
+    if (f.featureType == 1) {
+      olFeature.setStyle(createDBoxStyle(f));
+    } else {
+      olFeature.setStyle(createLightStyle(f));
+    }
 
     features.push(olFeature);
   }
@@ -39,6 +56,16 @@ export function loadData(data, reload = false) {
     size: map.getSize(),
   });
 }
+
+export function reloadFeatures() {
+  loadData(null, true);
+}
+
+export function pushFeatureAndLoad(feature) {
+  lastOut.features.push(feature);
+  reloadFeatures();
+}
+
 function parseETMSL(buffer) {
   const dv = new DataView(buffer);
   let off = 0;
@@ -67,8 +94,8 @@ function parseETMSL(buffer) {
     const packed2 = dv.getUint8(off);
     off += 1;
 
-    const featureType = (packed1 >> 4) & 0x0f;
-    const status = packed1 & 0x0f;
+    const status = (packed1 >> 4) & 0x0f;
+    const featureType = packed1 & 0x0f;
     const lampType = packed2 & 0x0f;
     const connection = (packed2 >> 4) & 0x0f;
 
